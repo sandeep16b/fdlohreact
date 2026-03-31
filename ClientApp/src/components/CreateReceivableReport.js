@@ -1412,7 +1412,7 @@ class CreateReceivableReportClass extends Component {
   handleSubmitRR = async () => {
     try {
       this.setState({ isSaving: true });
-      const result = await receivableReportService.submitReceivableReport(this.props.id);
+      const result = await receivableReportService.submitReceivableReport(this.state.receivableReportId || this.props.id);
       
       // Update local state
       this.setState({

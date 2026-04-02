@@ -31,17 +31,17 @@ const OrderStatusCellRenderer = ({ value }) => {
 const ActionsCellRenderer = ({ data }) => {
   if (!data?.id) return null;
   return (
-    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', height: '100%' }}>
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
       <Link
         to={`/receivable-report/edit/${data.id}`}
-        className="btn btn-sm btn-outline-primary"
+        className="grid-action-btn"
         title="Edit"
       >
-        <i className="fa fa-edit"></i>
+        <i className="fa fa-pencil-alt"></i>
       </Link>
       <Link
         to={`/receivable-report/view/${data.id}`}
-        className="btn btn-sm btn-outline-secondary"
+        className="grid-action-btn view-btn"
         title="View"
       >
         <i className="fa fa-eye"></i>

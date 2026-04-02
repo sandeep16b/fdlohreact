@@ -1,4 +1,4 @@
-﻿/* Provide sufficient contrast against white background */
+/* Provide sufficient contrast against white background */
 a {
   color: #0366d6;
 }
@@ -17,26 +17,99 @@ code {
   border-color: #1861ac;
 }
 
-/* AG-Grid Theme - matching VHCPP standard */
+/* AG-Grid Theme — Modern */
 .agGrid {
   --ag-background-color: #ffffff;
-  --ag-foreground-color: rgb(46, 55, 66);
+  --ag-foreground-color: #374151;
   --ag-font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --ag-header-background-color: #f9fafb;
-  --ag-header-foreground-color: #2c2b2b;
+  --ag-font-size: 14px;
+  --ag-header-background-color: #ffffff;
+  --ag-header-foreground-color: #111827;
   --ag-header-font-size: 14px;
   --ag-header-font-weight: 700;
-  --ag-odd-row-background-color: #f9fafb;
-  --ag-row-border-color: transparent;
+  --ag-odd-row-background-color: #ffffff;
+  --ag-row-hover-color: #eff6ff;
+  --ag-selected-row-background-color: #dbeafe;
+  --ag-row-border-color: #e5e7eb;
   --ag-border-color: #e5e7eb;
   --ag-header-column-separator-display: block;
   --ag-header-column-separator-width: 1px;
-  --ag-header-column-separator-color: #e5e7eb;
+  --ag-header-column-separator-color: #d1d5db;
   --ag-wrapper-border-radius: 0;
   --ag-grid-size: 10px;
+  --ag-cell-horizontal-padding: 16px;
+  --ag-row-height: 56px;
+  --ag-header-height: 48px;
 }
 
+.agGrid .ag-header {
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.agGrid .ag-header-cell-text {
+  font-weight: 700;
+  font-size: 14px;
+  color: #111827;
+}
+
+.agGrid .ag-row {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.15s ease;
+}
+
+.agGrid .ag-row:hover {
+  background-color: #eff6ff !important;
+}
+
+.agGrid .ag-cell {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* Action icon buttons */
+.grid-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  color: #6b7280;
+  margin-right: 4px;
+}
+
+.grid-action-btn:hover {
+  color: #2563eb;
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  text-decoration: none;
+}
+
+.grid-action-btn.view-btn:hover {
+  color: #059669;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+/* Pagination panel above grid */
 .ag-paging-panel {
   order: -1;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 2px solid #e5e7eb;
+  background-color: #ffffff;
+  font-size: 13px;
+  color: #6b7280;
+  height: 48px;
+}
+
+/* Pinned column separator */
+.agGrid .ag-pinned-left-cols-container .ag-cell:last-child {
+  border-right: 1px solid #e5e7eb;
 }

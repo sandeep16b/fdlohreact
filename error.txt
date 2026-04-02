@@ -1,0 +1,18 @@
+ated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+Failed to compile.
+
+Module not found: Error: Can't resolve 'ag-grid-react' in 'C:\vsts\ReactAspNetApp\ReactAspNetApp\ClientApp\src\components'
+ERROR in ./src/components/SearchReceivableReport.js 5:0-44
+Module not found: Error: Can't resolve 'ag-grid-react' in 'C:\vsts\ReactAspNetApp\ReactAspNetApp\ClientApp\src\components'
+
+ERROR in ./src/components/SearchReceivableReport.js 6:0-71
+Module not found: Error: Can't resolve 'ag-grid-community' in 'C:\vsts\ReactAspNetApp\ReactAspNetApp\ClientApp\src\components'
+
+ERROR in ./src/components/SearchReceivableReport.js 7:0-46
+Module not found: Error: Can't resolve 'ag-grid-community/styles/ag-grid.css' in 'C:\vsts\ReactAspNetApp\ReactAspNetApp\ClientApp\src\components'
+
+ERROR in ./src/components/SearchReceivableReport.js 8:0-54
+Module not found: Error: Can't resolve 'ag-grid-community/styles/ag-theme-quartz.css' in 'C:\vsts\ReactAspNetApp\ReactAspNetApp\ClientApp\src\components'
+
+webpack compiled with 4 errors

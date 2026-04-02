@@ -1,31 +1,117 @@
-import React, { Component } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  CardBody, 
-  CardHeader, 
-  Form, 
-  FormGroup, 
-  Label, 
-  Input, 
-  Button, 
-  Table,
-  Badge,
-  InputGroup,
-  InputGroupText
+﻿import React, { Component } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
+import {
+  Container, Row, Col, Card, CardBody, CardHeader,
+  Form, FormGroup, Label, Input, Button,
+  InputGroup, InputGroupText, Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { toast } from 'react-toastify';
 import receivableReportService from '../services/receivableReportService';
 
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+const RRStatusCellRenderer = ({ value }) => {
+  const status = value || 'Draft';
+  const colorMap = { Draft: 'secondary', Submitted: 'warning', Complete: 'success' };
+  const bg = colorMap[status] || 'secondary';
+  return <span className={`badge bg-${bg}`}>{status}</span>;
+};
+
+const OrderStatusCellRenderer = ({ value }) => {
+  if (!value) return <span>—</span>;
+  const bg = value === 'Complete' ? 'success' : 'warning';
+  return <span className={`badge bg-${bg}`}>{value}</span>;
+};
+
+const ActionsCellRenderer = ({ data }) => {
+  if (!data?.id) return null;
+  return (
+    <div>
+      <Link
+        to={`/receivable-report/edit/${data.id}`}
+        className="btn btn-sm btn-info me-1"
+        title="Edit"
+      >
+        <i className="fas fa-edit"></i>
+      </Link>
+      <Link
+        to={`/receivable-report/view/${data.id}`}
+        className="btn btn-sm btn-outline-secondary"
+        title="View"
+      >
+        <i className="fas fa-eye"></i>
+      </Link>
+    </div>
+  );
+};
+
 export class SearchReceivableReport extends Component {
   static displayName = SearchReceivableReport.name;
 
   constructor(props) {
     super(props);
+
+    this.gridRef = React.createRef();
+
+    this.columnDefs = [
+      {
+        headerName: 'Actions',
+        colId: 'Actions',
+        field: 'id',
+        cellRenderer: ActionsCellRenderer,
+        width: 110,
+        sortable: false,
+        filter: false,
+        pinned: 'left',
+      },
+      { field: 'id', colId: 'Id', headerName: 'ID', width: 80, filter: 'agNumberColumnFilter' },
+      {
+        field: 'organizationName',
+        colId: 'OrganizationName',
+        headerName: 'Organization',
+        filter: 'agTextColumnFilter',
+        valueFormatter: (p) => p.value || p.data?.organizationCode || 'N/A',
+      },
+      { field: 'procurementType', colId: 'ProcurementType', headerName: 'Procurement Type', filter: 'agTextColumnFilter' },
+      { field: 'purchaseOrderNumber', colId: 'PurchaseOrderNumber', headerName: 'PO Number', filter: 'agTextColumnFilter' },
+      { field: 'contractNumber', colId: 'ContractNumber', headerName: 'Contract Number', filter: 'agTextColumnFilter' },
+      {
+        field: 'createdDate',
+        colId: 'CreatedDate',
+        headerName: 'Created Date',
+        filter: 'agDateColumnFilter',
+        valueFormatter: (p) => p.value ? new Date(p.value).toLocaleDateString() : 'N/A',
+      },
+      { field: 'createdBy', colId: 'CreatedBy', headerName: 'Created By', filter: 'agTextColumnFilter' },
+      {
+        field: 'orderStatus',
+        colId: 'OrderStatus',
+        headerName: 'Order Status',
+        cellRenderer: OrderStatusCellRenderer,
+        filter: 'agTextColumnFilter',
+      },
+      {
+        field: 'rrStatus',
+        colId: 'RRStatus',
+        headerName: 'RR Status',
+        cellRenderer: RRStatusCellRenderer,
+        filter: 'agTextColumnFilter',
+      },
+    ];
+
+    this.defaultColDef = {
+      sortable: true,
+      filter: true,
+      resizable: true,
+      minWidth: 120,
+      filterParams: { maxNumConditions: 1 },
+    };
+
     this.state = {
       searchCriteria: {
         requestedBy: '',
@@ -38,63 +124,36 @@ export class SearchReceivableReport extends Component {
         createdDateTo: '',
         createdBy: '',
         priceRangeStart: '',
-        priceRangeEnd: ''
+        priceRangeEnd: '',
       },
-      searchResults: [],
-      
-      // Pagination
-      currentPage: 1,
-      pageSize: 10,
-      totalCount: 0,
-      totalPages: 0,
-      
-      // Loading states
+      rowData: [],
       isLoading: false,
       isLoadingLookupData: true,
-      
-      // Lookup data
       organizations: [],
       locations: {},
-      
-      // UI state
-      showError: false,
-      errorMessage: '',
-      showSuccess: false,
-      successMessage: '',
-      
-      // Delete confirmation modal
       showDeleteModal: false,
       itemToDelete: null,
-      hasSearched: false
     };
   }
 
   async componentDidMount() {
     try {
       await this.loadLookupData();
-      // Perform initial search to show all reports
       await this.performSearch();
     } catch (error) {
       console.error('Error in componentDidMount:', error);
       toast.error('Failed to load data. Please refresh the page.');
-      this.setState({ 
-        isLoadingLookupData: false
-      });
+      this.setState({ isLoadingLookupData: false });
     }
   }
 
-  // Load lookup data from API
   loadLookupData = async () => {
     try {
       this.setState({ isLoadingLookupData: true });
       const lookupData = await receivableReportService.getLookupData();
-      
-      // Validate API response
       const validLookupData = lookupData && typeof lookupData === 'object' ? lookupData : {};
       const organizations = Array.isArray(validLookupData.organizations) ? validLookupData.organizations : [];
       const locations = {};
-      
-      // Transform locations to the expected format
       if (validLookupData.locations && Array.isArray(validLookupData.locations)) {
         validLookupData.locations.forEach(loc => {
           if (loc && loc.code) {
@@ -103,31 +162,22 @@ export class SearchReceivableReport extends Component {
               city: loc.city || '',
               county: loc.county || '',
               state: loc.state || '',
-              postalCode: loc.postalCode || ''
+              postalCode: loc.postalCode || '',
             };
           }
         });
       }
-
-      this.setState({
-        organizations,
-        locations,
-        isLoadingLookupData: false
-      });
+      this.setState({ organizations, locations, isLoadingLookupData: false });
     } catch (error) {
       console.error('Error loading lookup data:', error);
-      toast.error('Failed to load lookup data. Using default values.');
-      this.setState({ 
-        isLoadingLookupData: false
-      });
+      toast.error('Failed to load lookup data.');
+      this.setState({ isLoadingLookupData: false });
     }
   };
 
-  // Perform search using API
-  performSearch = async (page = 1) => {
+  performSearch = async () => {
     try {
-      this.setState({ isLoading: true, showError: false });
-      
+      this.setState({ isLoading: true });
       const searchCriteria = receivableReportService.buildSearchCriteria({
         organizationCode: this.state.searchCriteria.organizationCode || null,
         locationCode: this.state.searchCriteria.locationCode || null,
@@ -136,80 +186,61 @@ export class SearchReceivableReport extends Component {
         createdDateFrom: this.state.searchCriteria.createdDateFrom || null,
         createdDateTo: this.state.searchCriteria.createdDateTo || null,
         createdBy: this.state.searchCriteria.createdBy || null,
-        pageNumber: page,
-        pageSize: this.state.pageSize
+        pageNumber: 1,
+        pageSize: 1000,
       });
-
       const result = await receivableReportService.searchReceivableReports(searchCriteria);
-      
-      // Validate search results
-      const validResult = result && typeof result === 'object' ? result : {};
-      const searchResults = Array.isArray(validResult.items) ? validResult.items : [];
-      
-      this.setState({
-        searchResults: searchResults,
-        totalCount: parseInt(validResult.totalCount) || 0,
-        totalPages: parseInt(validResult.totalPages) || 0,
-        currentPage: parseInt(validResult.pageNumber) || 1,
-        hasSearched: true,
-        isLoading: false
-      });
-      
+      const rowData = Array.isArray(result?.items) ? result.items : [];
+      this.setState({ rowData, isLoading: false });
     } catch (error) {
       console.error('Error performing search:', error);
-      toast.error('Failed to search receivable reports. Please try again.');
-      this.setState({ 
-        isLoading: false
-      });
+      toast.error('Failed to search receivable reports.');
+      this.setState({ isLoading: false });
     }
   };
 
-  // Delete receivable report
   deleteReceivableReport = async (id) => {
     try {
       await receivableReportService.deleteReceivableReport(id);
-      
       toast.success('Receivable report deleted successfully.');
-      this.setState({ 
-        showDeleteModal: false,
-        itemToDelete: null
-      });
-      
-      // Refresh the search results
-      await this.performSearch(this.state.currentPage);
-      
+      this.setState({ showDeleteModal: false, itemToDelete: null });
+      await this.performSearch();
     } catch (error) {
-      console.error('Error deleting receivable report:', error);
-      toast.error('Failed to delete receivable report. Please try again.');
-      this.setState({ 
-        showDeleteModal: false,
-        itemToDelete: null
-      });
+      console.error('Error deleting:', error);
+      toast.error('Failed to delete receivable report.');
+      this.setState({ showDeleteModal: false, itemToDelete: null });
     }
   };
 
   handleInputChange = (field, value) => {
     this.setState({
-      searchCriteria: {
-        ...this.state.searchCriteria,
-        [field]: value
-      }
+      searchCriteria: { ...this.state.searchCriteria, [field]: value },
     });
   };
 
   handleSearch = async () => {
-    await this.performSearch(1);
+    await this.performSearch();
   };
 
-  handlePageChange = async (page) => {
-    await this.performSearch(page);
+  handleClear = () => {
+    this.setState({
+      searchCriteria: {
+        requestedBy: '', organizationCode: '', locationCode: '',
+        orderStatus: '', rrStatus: '', organizationName: '',
+        createdDateFrom: '', createdDateTo: '', createdBy: '',
+        priceRangeStart: '', priceRangeEnd: '',
+      },
+    });
+  };
+
+  handleClearFilters = () => {
+    if (this.gridRef.current?.api) {
+      this.gridRef.current.api.setFilterModel(null);
+    }
   };
 
   handleDeleteClick = (item) => {
-    this.setState({
-      showDeleteModal: true,
-      itemToDelete: item
-    });
+    this.setState({ showDeleteModal: true, itemToDelete: item });
   };
 
   handleDeleteConfirm = async () => {
@@ -219,67 +250,17 @@ export class SearchReceivableReport extends Component {
   };
 
   handleDeleteCancel = () => {
-    this.setState({
-      showDeleteModal: false,
-      itemToDelete: null
-    });
-  };
-
-  handleClear = () => {
-    this.setState({
-      searchCriteria: {
-        requestedBy: '',
-        organizationCode: '',
-        locationCode: '',
-        orderStatus: '',
-        rrStatus: '',
-        organizationName: '',
-        createdDateFrom: '',
-        createdDateTo: '',
-        createdBy: '',
-        priceRangeStart: '',
-        priceRangeEnd: ''
-      },
-      hasSearched: false
-    });
-  };
-
-  getStatusBadge = (status) => {
-    const color = status === 'Active' ? 'success' : status === 'Closed' ? 'secondary' : 'warning';
-    return <Badge color={color}>{status}</Badge>;
-  };
-
-  getRRStatusBadge = (status) => {
-    let color;
-    switch (status) {
-      case 'Draft':
-        color = 'secondary';
-        break;
-      case 'Submitted':
-        color = 'warning';
-        break;
-      case 'Complete':
-        color = 'success';
-        break;
-      default:
-        color = 'secondary';
-    }
-    return <Badge color={color}>{status}</Badge>;
-  };
-
-  getOrderStatusBadge = (status) => {
-    const color = status === 'Complete' ? 'success' : 'warning';
-    return <Badge color={color}>{status}</Badge>;
+    this.setState({ showDeleteModal: false, itemToDelete: null });
   };
 
   render() {
-    const { searchCriteria, searchResults, hasSearched } = this.state;
+    const { searchCriteria, rowData, isLoading, showDeleteModal, itemToDelete } = this.state;
 
     return (
       <Container fluid>
         <Row>
           <Col>
-            <h2>Search Receivable Reports</h2>
+            <h2>Receivable Reports</h2>
           </Col>
         </Row>
 
@@ -287,85 +268,54 @@ export class SearchReceivableReport extends Component {
         <Row className="mb-4">
           <Col>
             <Card>
-              <CardHeader>
-                <h5>Search Criteria</h5>
-              </CardHeader>
+              <CardHeader><h5>Search Criteria</h5></CardHeader>
               <CardBody>
                 <Form>
                   <Row>
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="requestedBy">Requested By</Label>
-                        <Input
-                          type="text"
-                          id="requestedBy"
-                          value={searchCriteria.requestedBy}
-                          onChange={(e) => this.handleInputChange('requestedBy', e.target.value)}
-                          placeholder="Enter requester name"
-                        />
+                        <Label for="organizationCode">Organization Code</Label>
+                        <Input type="text" id="organizationCode"
+                          value={searchCriteria.organizationCode}
+                          onChange={(e) => this.handleInputChange('organizationCode', e.target.value)}
+                          placeholder="Enter organization code" />
                       </FormGroup>
                     </Col>
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="organizationCode">Organization Code</Label>
-                        <Input
-                          type="text"
-                          id="organizationCode"
-                          value={searchCriteria.organizationCode}
-                          onChange={(e) => this.handleInputChange('organizationCode', e.target.value)}
-                          placeholder="Enter organization code"
-                        />
+                        <Label for="organizationName">Organization Name</Label>
+                        <Input type="text" id="organizationName"
+                          value={searchCriteria.organizationName}
+                          onChange={(e) => this.handleInputChange('organizationName', e.target.value)}
+                          placeholder="Enter organization name" />
                       </FormGroup>
                     </Col>
                   </Row>
                   <Row>
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="organizationName">Organization Name</Label>
-                        <Input
-                          type="text"
-                          id="organizationName"
-                          value={searchCriteria.organizationName}
-                          onChange={(e) => this.handleInputChange('organizationName', e.target.value)}
-                          placeholder="Enter organization name"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
                         <Label for="orderStatus">Order Status</Label>
-                        <Input
-                          type="select"
-                          id="orderStatus"
+                        <Input type="select" id="orderStatus"
                           value={searchCriteria.orderStatus}
-                          onChange={(e) => this.handleInputChange('orderStatus', e.target.value)}
-                        >
+                          onChange={(e) => this.handleInputChange('orderStatus', e.target.value)}>
                           <option value="">Select Status</option>
                           <option value="Partial">Partial</option>
                           <option value="Complete">Complete</option>
                         </Input>
                       </FormGroup>
                     </Col>
-                  </Row>
-                  <Row>
                     <Col md={6}>
                       <FormGroup>
                         <Label for="rrStatus">RR Status</Label>
-                        <Input
-                          type="select"
-                          id="rrStatus"
+                        <Input type="select" id="rrStatus"
                           value={searchCriteria.rrStatus}
-                          onChange={(e) => this.handleInputChange('rrStatus', e.target.value)}
-                        >
+                          onChange={(e) => this.handleInputChange('rrStatus', e.target.value)}>
                           <option value="">Select RR Status</option>
                           <option value="Draft">Draft</option>
                           <option value="Submitted">Submitted</option>
                           <option value="Complete">Complete</option>
                         </Input>
                       </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      {/* Empty column for layout balance */}
                     </Col>
                   </Row>
                   <Row>
@@ -374,15 +324,10 @@ export class SearchReceivableReport extends Component {
                         <Label for="priceRangeStart">Price Range Start</Label>
                         <InputGroup>
                           <InputGroupText>$</InputGroupText>
-                          <Input
-                            type="number"
-                            id="priceRangeStart"
+                          <Input type="number" id="priceRangeStart"
                             value={searchCriteria.priceRangeStart}
                             onChange={(e) => this.handleInputChange('priceRangeStart', e.target.value)}
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
+                            placeholder="0.00" min="0" step="0.01" />
                         </InputGroup>
                       </FormGroup>
                     </Col>
@@ -391,34 +336,21 @@ export class SearchReceivableReport extends Component {
                         <Label for="priceRangeEnd">Price Range Up To</Label>
                         <InputGroup>
                           <InputGroupText>$</InputGroupText>
-                          <Input
-                            type="number"
-                            id="priceRangeEnd"
+                          <Input type="number" id="priceRangeEnd"
                             value={searchCriteria.priceRangeEnd}
                             onChange={(e) => this.handleInputChange('priceRangeEnd', e.target.value)}
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
+                            placeholder="0.00" min="0" step="0.01" />
                         </InputGroup>
                       </FormGroup>
                     </Col>
                   </Row>
                   <Row>
                     <Col>
-                      <Button color="primary" onClick={this.handleSearch} className="me-2">
+                      <Button color="primary" onClick={this.handleSearch} className="me-2" disabled={isLoading}>
                         <i className="fas fa-search me-2"></i>Search
                       </Button>
                       <Button color="secondary" onClick={this.handleClear} className="me-2">
                         <i className="fas fa-eraser me-2"></i>Clear
-                      </Button>
-                      <Button 
-                        color="success" 
-                        tag={Link} 
-                        to="/receivable-report/create"
-                        className="float-end"
-                      >
-                        <i className="fas fa-plus me-2"></i>Create Receivable Report
                       </Button>
                     </Col>
                   </Row>
@@ -428,76 +360,66 @@ export class SearchReceivableReport extends Component {
           </Col>
         </Row>
 
-        {/* Search Results */}
-        {hasSearched && (
-          <Row>
-            <Col>
-              <Card>
-                <CardHeader>
-                  <h5>Search Results ({searchResults.length} records found)</h5>
-                </CardHeader>
-                <CardBody>
-                  <Table responsive striped hover>
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Organization</th>
-                        <th>Procurement Type</th>
-                        <th>Purchase Order Number</th>
-                        <th>Contract Number</th>
-                        <th>Created Date</th>
-                        <th>Created By</th>
-                        <th>Order Status</th>
-                        <th>RR Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {searchResults.map((result) => (
-                        <tr key={result.id}>
-                          <td><strong>{result.id}</strong></td>
-                          <td>{result.organizationName || result.organizationCode || 'N/A'}</td>
-                          <td>{result.procurementType || 'N/A'}</td>
-                          <td>{result.purchaseOrderNumber || 'N/A'}</td>
-                          <td>{result.contractNumber || 'N/A'}</td>
-                          <td>{result.createdDate ? new Date(result.createdDate).toLocaleDateString() : 'N/A'}</td>
-                          <td>{result.createdBy || 'N/A'}</td>
-                          <td>{this.getOrderStatusBadge(result.orderStatus)}</td>
-                          <td>{this.getRRStatusBadge(result.rrStatus || 'Draft')}</td>
-                          <td>
-                            <Button
-                              size="sm"
-                              color="info"
-                              tag={Link}
-                              to={`/receivable-report/edit/${result.id}`}
-                              className="me-1"
-                              title="Edit Receivable Report"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </Button>
-                            <Button
-                              size="sm"
-                              color="outline-secondary"
-                              tag={Link}
-                              to={`/receivable-report/view/${result.id}`}
-                              title="View Receivable Report"
-                            >
-                              <i className="fas fa-eye"></i>
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        )}
+        {/* AG-Grid Results */}
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Search Results</h5>
+                  <div>
+                    <button
+                      className="btn btn-sm btn-outline-secondary me-2"
+                      title="Clear Grid Filters"
+                      onClick={this.handleClearFilters}
+                    >
+                      <i className="fas fa-filter me-1"></i>Clear Filters
+                    </button>
+                    <Link to="/receivable-report/create" className="btn btn-success btn-sm">
+                      <i className="fas fa-plus me-1"></i>Create Receivable Report
+                    </Link>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardBody className="p-0">
+                {isLoading && (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                )}
+                <div className="ag-theme-quartz agGrid" style={{ width: '100%', height: '600px' }}>
+                  <AgGridReact
+                    ref={this.gridRef}
+                    columnDefs={this.columnDefs}
+                    defaultColDef={this.defaultColDef}
+                    rowData={rowData}
+                    pagination={true}
+                    paginationPageSize={25}
+                    paginationPageSizeSelector={[25, 50, 100]}
+                    suppressCellFocus={true}
+                    animateRows={true}
+                  />
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Delete Confirmation Modal */}
+        <Modal isOpen={showDeleteModal} toggle={this.handleDeleteCancel}>
+          <ModalHeader toggle={this.handleDeleteCancel}>Confirm Delete</ModalHeader>
+          <ModalBody>
+            Are you sure you want to delete receivable report{' '}
+            <strong>#{itemToDelete?.id}</strong>? This action cannot be undone.
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={this.handleDeleteConfirm}>Delete</Button>
+            <Button color="secondary" onClick={this.handleDeleteCancel}>Cancel</Button>
+          </ModalFooter>
+        </Modal>
       </Container>
     );
   }
 }
-
-
-

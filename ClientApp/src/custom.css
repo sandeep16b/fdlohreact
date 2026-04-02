@@ -1,4 +1,4 @@
-/* Provide sufficient contrast against white background */
+﻿/* Provide sufficient contrast against white background */
 a {
   color: #0366d6;
 }
@@ -15,4 +15,28 @@ code {
   color: #fff;
   background-color: #1b6ec2;
   border-color: #1861ac;
+}
+
+/* AG-Grid Theme - matching VHCPP standard */
+.agGrid {
+  --ag-background-color: #ffffff;
+  --ag-foreground-color: rgb(46, 55, 66);
+  --ag-font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ag-header-background-color: #f9fafb;
+  --ag-header-foreground-color: #2c2b2b;
+  --ag-header-font-size: 14px;
+  --ag-header-font-weight: 700;
+  --ag-odd-row-background-color: #f9fafb;
+  --ag-row-border-color: transparent;
+  --ag-border-color: #e5e7eb;
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-width: 1px;
+  --ag-header-column-separator-color: #e5e7eb;
+  --ag-wrapper-border-radius: 0;
+  --ag-grid-size: 10px;
+}
+
+.ag-paging-panel {
+  order: -1;
+  border-bottom: 1px solid #dee2e6;
 }

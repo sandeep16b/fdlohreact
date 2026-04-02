@@ -267,7 +267,7 @@ export class SearchReceivableReport extends Component {
         {/* Search Form */}
         <Row className="mb-4">
           <Col>
-            <Card>
+            <Card className="modern-card">
               <CardHeader><h5>Search Criteria</h5></CardHeader>
               <CardBody>
                 <Form>
@@ -363,7 +363,7 @@ export class SearchReceivableReport extends Component {
         {/* AG-Grid Results */}
         <Row>
           <Col>
-            <Card>
+            <Card className="modern-card results-card">
               <CardHeader>
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">Search Results</h5>

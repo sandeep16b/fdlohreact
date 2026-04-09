@@ -400,6 +400,8 @@ export class SearchReceivableReport extends Component {
                     paginationPageSizeSelector={[25, 50, 100]}
                     suppressCellFocus={true}
                     animateRows={true}
+                    rowHeight={56}
+                    headerHeight={44}
                   />
                 </div>
               </CardBody>

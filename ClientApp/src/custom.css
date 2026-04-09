@@ -52,7 +52,7 @@ code {
   --ag-background-color: #ffffff;
   --ag-foreground-color: #374151;
   --ag-font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --ag-font-size: 14px;
+  --ag-font-size: 15px;
   --ag-header-background-color: #f8faff;
   --ag-header-foreground-color: #1e3a5f;
   --ag-header-font-size: 13px;
@@ -107,7 +107,7 @@ code {
 .agGrid .ag-cell {
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: 15px;
   color: #374151;
 }
 

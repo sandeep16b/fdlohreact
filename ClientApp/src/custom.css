@@ -16,3 +16,146 @@ code {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
+
+/* ── Cards ──────────────────────────────────────────── */
+.modern-card {
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06) !important;
+  overflow: hidden;
+}
+
+.modern-card .card-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+}
+
+.modern-card .card-header h5 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+/* Results card gets a blue accent stripe on top */
+.results-card {
+  border-top: 3px solid #2563eb !important;
+}
+
+.results-card .card-header {
+  background: linear-gradient(to right, #f8faff, #ffffff);
+}
+
+/* ── AG-Grid Theme ──────────────────────────────────── */
+.agGrid {
+  --ag-background-color: #ffffff;
+  --ag-foreground-color: #374151;
+  --ag-font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ag-font-size: 15px;
+  --ag-header-background-color: #f8faff;
+  --ag-header-foreground-color: #1e3a5f;
+  --ag-header-font-size: 13px;
+  --ag-header-font-weight: 700;
+  --ag-odd-row-background-color: #f0f4ff;
+  --ag-row-hover-color: #eff6ff;
+  --ag-selected-row-background-color: #dbeafe;
+  --ag-row-border-color: #eef0f3;
+  --ag-border-color: #e5e7eb;
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-width: 1px;
+  --ag-header-column-separator-color: #d1d5db;
+  --ag-wrapper-border-radius: 0;
+  --ag-grid-size: 10px;
+  --ag-cell-horizontal-padding: 16px;
+  --ag-row-height: 104px;
+  --ag-header-height: 44px;
+}
+
+.agGrid .ag-header {
+  border-bottom: 2px solid #dce3f0;
+}
+
+.agGrid .ag-header-cell-text {
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e3a5f;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.agGrid .ag-row {
+  border-bottom: 1px solid #eef0f3;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.agGrid .ag-row-even {
+  background-color: #ffffff !important;
+}
+
+.agGrid .ag-row-odd {
+  background-color: #eef2ff !important;
+}
+
+.agGrid .ag-row:hover,
+.agGrid .ag-row-even:hover,
+.agGrid .ag-row-odd:hover {
+  background-color: #dbeafe !important;
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+.agGrid .ag-cell {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  color: #374151;
+}
+
+/* ── Action icon buttons ──────────────────────────────────────────── */
+.grid-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  color: #6b7280;
+  margin-right: 5px;
+}
+
+.grid-action-btn:hover {
+  color: #2563eb;
+  background-color: #eff6ff;
+  border-color: #93c5fd;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.15);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.grid-action-btn.view-btn:hover {
+  color: #059669;
+  background-color: #ecfdf5;
+  border-color: #6ee7b7;
+  box-shadow: 0 1px 4px rgba(5,150,105,0.15);
+}
+
+/* ── Pagination panel ───────────────────────────────────────────────────── */
+.ag-paging-panel {
+  order: -1;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f8faff;
+  font-size: 13px;
+  color: #6b7280;
+  height: 46px;
+}
+
+/* ── Pinned column separator ──────────────────────────────────────────────── */
+.agGrid .ag-pinned-left-cols-container .ag-cell:last-child {
+  border-right: 1px solid #e5e7eb;
+}

@@ -22,6 +22,7 @@ export class SearchReceivableReport extends Component {
     super(props);
     this.state = {
       searchResults: [],
+      filteredResults: [],
 
       // Pagination
       currentPage: 1,
@@ -34,7 +35,20 @@ export class SearchReceivableReport extends Component {
 
       // UI state
       showError: false,
-      errorMessage: ''
+      errorMessage: '',
+
+      // Filter state
+      filters: {
+        id: '',
+        organization: '',
+        procurementType: '',
+        purchaseOrderNumber: '',
+        contractNumber: '',
+        createdDate: '',
+        createdBy: '',
+        orderStatus: '',
+        rrStatus: ''
+      }
     };
   }
 
@@ -68,6 +82,7 @@ export class SearchReceivableReport extends Component {
 
       this.setState({
         searchResults: searchResults,
+        filteredResults: searchResults,
         totalCount: parseInt(validResult.totalCount) || 0,
         totalPages: parseInt(validResult.totalPages) || 0,
         currentPage: parseInt(validResult.pageNumber) || 1,
@@ -85,6 +100,28 @@ export class SearchReceivableReport extends Component {
 
   handlePageChange = async (page) => {
     await this.loadAllReports(page);
+  };
+
+  handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    const filters = { ...this.state.filters, [name]: value };
+
+    // Filter the search results based on all filter values
+    const filtered = this.state.searchResults.filter(result => {
+      return (
+        (result.id?.toString().toLowerCase().includes(filters.id.toLowerCase()) || filters.id === '') &&
+        ((result.organizationName || result.organizationCode || 'N/A').toLowerCase().includes(filters.organization.toLowerCase()) || filters.organization === '') &&
+        ((result.procurementType || 'N/A').toLowerCase().includes(filters.procurementType.toLowerCase()) || filters.procurementType === '') &&
+        ((result.purchaseOrderNumber || 'N/A').toLowerCase().includes(filters.purchaseOrderNumber.toLowerCase()) || filters.purchaseOrderNumber === '') &&
+        ((result.contractNumber || 'N/A').toLowerCase().includes(filters.contractNumber.toLowerCase()) || filters.contractNumber === '') &&
+        ((result.createdDate ? new Date(result.createdDate).toLocaleDateString() : 'N/A').includes(filters.createdDate) || filters.createdDate === '') &&
+        ((result.createdBy || 'N/A').toLowerCase().includes(filters.createdBy.toLowerCase()) || filters.createdBy === '') &&
+        ((result.orderStatus || 'N/A').toLowerCase().includes(filters.orderStatus.toLowerCase()) || filters.orderStatus === '') &&
+        ((result.rrStatus || 'Draft').toLowerCase().includes(filters.rrStatus.toLowerCase()) || filters.rrStatus === '')
+      );
+    });
+
+    this.setState({ filters, filteredResults: filtered });
   };
 
   getRRStatusBadge = (status) => {
@@ -111,7 +148,7 @@ export class SearchReceivableReport extends Component {
   };
 
   render() {
-    const { searchResults, isLoading, totalCount } = this.state;
+    const { searchResults, filteredResults, isLoading, totalCount, filters } = this.state;
 
     return (
       <Container fluid>
@@ -120,8 +157,8 @@ export class SearchReceivableReport extends Component {
           <Col>
             <Card>
               {/* Card Header with Title - Blue Background */}
-              <CardHeader style={{ background: 'linear-gradient(to bottom, #0C7FA5 0%, #E8F7FB 100%)', color: 'white', padding: '1rem' }}>
-                <h5 style={{ margin: 0 }}>Receivable Reports</h5>
+              <CardHeader style={{ background: 'linear-gradient(to bottom, #0C7FA5 0%, #E8F7FB 100%)', padding: '1rem' }}>
+                <h5 style={{ margin: 0, color: '#1A3A3A' }}>Receivable Reports</h5>
               </CardHeader>
 
               {/* Card Body */}
@@ -138,22 +175,13 @@ export class SearchReceivableReport extends Component {
                     <i className="fas fa-plus"></i>
                   </Button>
                   <Button
-                    color="primary"
-                    onClick={() => this.loadAllReports(1)}
-                    disabled={isLoading}
-                    title="Search"
-                    style={{ padding: '0.5rem 0.75rem' }}
-                  >
-                    <i className="fas fa-search"></i>
-                  </Button>
-                  <Button
                     outline
                     color="secondary"
                     onClick={() => window.location.reload()}
-                    title="Clear Filters"
+                    title="Refresh"
                     style={{ padding: '0.5rem 0.75rem' }}
                   >
-                    <i className="fas fa-eraser"></i>
+                    <i className="fas fa-sync"></i>
                   </Button>
                 </div>
 
@@ -182,16 +210,109 @@ export class SearchReceivableReport extends Component {
                           <th>Order Status</th>
                           <th>RR Status</th>
                         </tr>
+                        <tr style={{ backgroundColor: '#f0f0f0' }}>
+                          <th style={{ padding: '0.5rem' }}></th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="id"
+                              value={filters.id}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter ID"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="organization"
+                              value={filters.organization}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter Org"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="procurementType"
+                              value={filters.procurementType}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter Type"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="purchaseOrderNumber"
+                              value={filters.purchaseOrderNumber}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter PO"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="contractNumber"
+                              value={filters.contractNumber}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter Contract"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="createdDate"
+                              value={filters.createdDate}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter Date"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="createdBy"
+                              value={filters.createdBy}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter By"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="orderStatus"
+                              value={filters.orderStatus}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter Status"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                          <th style={{ padding: '0.5rem' }}>
+                            <input
+                              type="text"
+                              name="rrStatus"
+                              value={filters.rrStatus}
+                              onChange={this.handleFilterChange}
+                              placeholder="Filter RR"
+                              style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                            />
+                          </th>
+                        </tr>
                       </thead>
                       <tbody>
-                        {searchResults.length === 0 ? (
+                        {filteredResults.length === 0 ? (
                           <tr>
                             <td colSpan="10" className="text-center py-4">
                               <em>No records found</em>
                             </td>
                           </tr>
                         ) : (
-                          searchResults.map((result) => (
+                          filteredResults.map((result) => (
                             <tr key={result.id}>
                               <td>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -34,6 +34,7 @@ class SearchApplicationSecurityClass extends Component {
     super(props);
     this.state = {
       searchResults: [],
+      filteredResults: [],
 
       // Pagination
       currentPage: 1,
@@ -50,7 +51,18 @@ class SearchApplicationSecurityClass extends Component {
 
       // Delete confirmation modal
       showDeleteModal: false,
-      itemToDelete: null
+      itemToDelete: null,
+
+      // Filter state
+      filters: {
+        id: '',
+        username: '',
+        applicationRoleName: '',
+        createdDate: '',
+        createdBy: '',
+        updatedDate: '',
+        updatedBy: ''
+      }
     };
   }
 
@@ -84,6 +96,7 @@ class SearchApplicationSecurityClass extends Component {
 
       this.setState({
         searchResults: searchResults,
+        filteredResults: searchResults,
         totalCount: parseInt(validResult.totalCount) || 0,
         totalPages: parseInt(validResult.totalPages) || 0,
         currentPage: parseInt(validResult.pageNumber) || 1,
@@ -130,6 +143,26 @@ class SearchApplicationSecurityClass extends Component {
     await this.loadAllRecords(page);
   };
 
+  handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    const filters = { ...this.state.filters, [name]: value };
+
+    // Filter the search results based on all filter values
+    const filtered = this.state.searchResults.filter(result => {
+      return (
+        (result.id?.toString().toLowerCase().includes(filters.id.toLowerCase()) || filters.id === '') &&
+        ((result.username || 'N/A').toLowerCase().includes(filters.username.toLowerCase()) || filters.username === '') &&
+        ((result.applicationRoleName || 'N/A').toLowerCase().includes(filters.applicationRoleName.toLowerCase()) || filters.applicationRoleName === '') &&
+        ((result.createdDate ? new Date(result.createdDate).toLocaleDateString() : 'N/A').includes(filters.createdDate) || filters.createdDate === '') &&
+        ((result.createdBy || 'N/A').toLowerCase().includes(filters.createdBy.toLowerCase()) || filters.createdBy === '') &&
+        ((result.updatedDate ? new Date(result.updatedDate).toLocaleDateString() : 'N/A').includes(filters.updatedDate) || filters.updatedDate === '') &&
+        ((result.updatedBy || 'N/A').toLowerCase().includes(filters.updatedBy.toLowerCase()) || filters.updatedBy === '')
+      );
+    });
+
+    this.setState({ filters, filteredResults: filtered });
+  };
+
   handleDeleteClick = (item) => {
     this.setState({
       showDeleteModal: true,
@@ -168,7 +201,7 @@ class SearchApplicationSecurityClass extends Component {
   };
 
   render() {
-    const { searchResults, isLoading, showDeleteModal, itemToDelete, currentPage, totalPages, totalCount } = this.state;
+    const { searchResults, filteredResults, isLoading, showDeleteModal, itemToDelete, currentPage, totalPages, totalCount, filters } = this.state;
 
     return (
       <Container fluid>
@@ -177,8 +210,8 @@ class SearchApplicationSecurityClass extends Component {
           <Col>
             <Card>
               {/* Card Header with Title - Blue Background */}
-              <CardHeader style={{ background: 'linear-gradient(to bottom, #0C7FA5 0%, #E8F7FB 100%)', color: 'white', padding: '1rem' }}>
-                <h5 style={{ margin: 0 }}>Application Security</h5>
+              <CardHeader style={{ background: 'linear-gradient(to bottom, #0C7FA5 0%, #E8F7FB 100%)', padding: '1rem' }}>
+                <h5 style={{ margin: 0, color: '#1A3A3A' }}>Application Security</h5>
               </CardHeader>
 
               {/* Card Body */}
@@ -194,22 +227,13 @@ class SearchApplicationSecurityClass extends Component {
                     <i className="fas fa-plus"></i>
                   </Button>
                   <Button
-                    color="primary"
-                    onClick={() => this.loadAllRecords(1)}
-                    disabled={isLoading}
-                    title="Search"
-                    style={{ padding: '0.5rem 0.75rem' }}
-                  >
-                    <i className="fas fa-search"></i>
-                  </Button>
-                  <Button
                     outline
                     color="secondary"
                     onClick={() => window.location.reload()}
-                    title="Clear Filters"
+                    title="Refresh"
                     style={{ padding: '0.5rem 0.75rem' }}
                   >
-                    <i className="fas fa-eraser"></i>
+                    <i className="fas fa-sync"></i>
                   </Button>
                 </div>
 
@@ -237,16 +261,89 @@ class SearchApplicationSecurityClass extends Component {
                             <th>Updated Date</th>
                             <th>Updated By</th>
                           </tr>
+                          <tr style={{ backgroundColor: '#f0f0f0' }}>
+                            <th style={{ padding: '0.5rem' }}></th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="id"
+                                value={filters.id}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter ID"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="username"
+                                value={filters.username}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter Email"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="applicationRoleName"
+                                value={filters.applicationRoleName}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter Role"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="createdDate"
+                                value={filters.createdDate}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter Date"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="createdBy"
+                                value={filters.createdBy}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter By"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="updatedDate"
+                                value={filters.updatedDate}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter Date"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                            <th style={{ padding: '0.5rem' }}>
+                              <input
+                                type="text"
+                                name="updatedBy"
+                                value={filters.updatedBy}
+                                onChange={this.handleFilterChange}
+                                placeholder="Filter By"
+                                style={{ width: '100%', padding: '0.3rem', fontSize: '0.85rem' }}
+                              />
+                            </th>
+                          </tr>
                         </thead>
                         <tbody>
-                          {searchResults.length === 0 ? (
+                          {filteredResults.length === 0 ? (
                             <tr>
                               <td colSpan="8" className="text-center py-4">
                                 <em>No records found</em>
                               </td>
                             </tr>
                           ) : (
-                            searchResults.map((result) => (
+                            filteredResults.map((result) => (
                               <tr key={result.id}>
                                 <td>
                                   <div style={{ display: 'flex', gap: '0.5rem' }}>

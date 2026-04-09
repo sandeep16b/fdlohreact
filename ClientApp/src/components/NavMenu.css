@@ -1,4 +1,68 @@
-﻿a.navbar-brand {
+﻿/* Navbar Custom Styling */
+.navbar-custom {
+  background-color: #0C7FA5 !important;
+  padding: 0.75rem 1rem !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo and Brand Container */
+.navbar-brand-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  flex-grow: 1;
+}
+
+.navbar-brand-custom:hover {
+  opacity: 0.9;
+}
+
+/* FL DOH Logo */
+.navbar-logo {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Navbar Title */
+.navbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Navbar Toggle Button */
+.navbar-toggle-custom {
+  color: white !important;
+  border-color: white !important;
+  padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggle-custom:hover {
+  opacity: 0.8;
+}
+
+/* Navbar Links */
+.navbar-link-custom {
+  color: white !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-link-custom:hover {
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+/* Base HTML Styling */
+a.navbar-brand {
   white-space: normal;
   text-align: center;
   word-break: break-all;
@@ -7,6 +71,7 @@
 html {
   font-size: 14px;
 }
+
 @media (min-width: 768px) {
   html {
     font-size: 16px;

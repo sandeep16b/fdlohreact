@@ -2295,13 +2295,13 @@ class CreateReceivableReportClass extends Component {
                      <i className="fas fa-check-double me-2"></i>Complete RR
                    </Button>
                  )}
-                 {/* Update RR Button - Always available */}
+                 {/* Save/Update RR Button - Always available */}
                  <Button color="primary" type="submit" disabled={isSaving}>
                    {isSaving && <Spinner size="sm" className="me-2" />}
-                   {!isSaving && <i className="fas fa-save me-2"></i>}
-                   {isSaving 
-                     ? (isEditMode ? 'Updating...' : 'Creating...') 
-                     : (isEditMode ? 'Update Receivable Report' : 'Create Receivable Report')
+                   {!isSaving && <i className={isEditMode ? 'fas fa-edit me-2' : 'fas fa-save me-2'}></i>}
+                   {isSaving
+                     ? (isEditMode ? 'Updating...' : 'Creating...')
+                     : (isEditMode ? 'Edit Report' : 'Create Receivable Report')
                    }
                 </Button>
               </div>

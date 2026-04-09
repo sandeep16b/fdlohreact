@@ -1,16 +1,12 @@
 import React, { Component } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  CardBody, 
-  CardHeader, 
-  Form, 
-  FormGroup, 
-  Label, 
-  Input, 
-  Button, 
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
   Table,
   Badge,
   Modal,
@@ -18,11 +14,10 @@ import {
   ModalBody,
   ModalFooter
 } from 'reactstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { toast } from 'react-toastify';
 import applicationSecurityService from '../services/applicationSecurityService';
-
 
 // Wrapper component to handle navigation
 function SearchApplicationSecurityWrapper() {
@@ -33,36 +28,26 @@ function SearchApplicationSecurityWrapper() {
 export { SearchApplicationSecurityWrapper as SearchApplicationSecurity };
 
 class SearchApplicationSecurityClass extends Component {
-  static displayName = SearchApplicationSecurityClass.name
+  static displayName = SearchApplicationSecurityClass.name;
 
   constructor(props) {
     super(props);
     this.state = {
-      searchCriteria: {
-        username: '',
-        applicationRoleId: null,
-        applicationRoleName: ''
-      },
       searchResults: [],
-      
+
       // Pagination
       currentPage: 1,
       pageSize: 10,
       totalCount: 0,
       totalPages: 0,
-      
+
       // Loading states
-      isLoading: false,
-      isLoadingRoles: true,
-      
-      // Lookup data
-      applicationRoles: [],
-      
+      isLoading: true,
+
       // UI state
       showError: false,
       errorMessage: '',
-      hasSearched: false,
-      
+
       // Delete confirmation modal
       showDeleteModal: false,
       itemToDelete: null
@@ -71,69 +56,44 @@ class SearchApplicationSecurityClass extends Component {
 
   async componentDidMount() {
     try {
-      await this.loadApplicationRoles();
-      // Perform initial search to show all records
-      await this.performSearch();
+      // Load all records on page mount
+      await this.loadAllRecords();
     } catch (error) {
       console.error('Error in componentDidMount:', error);
       toast.error('Failed to load data. Please refresh the page.');
-      this.setState({ 
-        isLoadingRoles: false
-      });
+      this.setState({ isLoading: false });
     }
   }
 
-  // Load application roles from API
-  loadApplicationRoles = async () => {
-    try {
-      this.setState({ isLoadingRoles: true });
-      const roles = await applicationSecurityService.getApplicationRoles();
-      
-      this.setState({
-        applicationRoles: Array.isArray(roles) ? roles : [],
-        isLoadingRoles: false
-      });
-    } catch (error) {
-      console.error('Error loading application roles:', error);
-      toast.error('Failed to load application roles.');
-      this.setState({ 
-        isLoadingRoles: false
-      });
-    }
-  };
-
-  // Perform search using API
-  performSearch = async (page = 1) => {
+  // Load all application security records
+  loadAllRecords = async (page = 1) => {
     try {
       this.setState({ isLoading: true, showError: false });
-      
+
+      // Get all records without specific search criteria
       const searchCriteria = applicationSecurityService.buildSearchCriteria({
-        username: this.state.searchCriteria.username || null,
-        applicationRoleId: this.state.searchCriteria.applicationRoleId || null,
-        applicationRoleName: this.state.searchCriteria.applicationRoleName || null,
         pageNumber: page,
         pageSize: this.state.pageSize
       });
 
       const result = await applicationSecurityService.searchApplicationSecurity(searchCriteria);
-      
+
       // Validate search results
       const validResult = result && typeof result === 'object' ? result : {};
       const searchResults = Array.isArray(validResult.items) ? validResult.items : [];
-      
+
       this.setState({
         searchResults: searchResults,
         totalCount: parseInt(validResult.totalCount) || 0,
         totalPages: parseInt(validResult.totalPages) || 0,
         currentPage: parseInt(validResult.pageNumber) || 1,
-        hasSearched: true,
         isLoading: false
       });
-      
+
     } catch (error) {
-      console.error('Error performing search:', error);
-      toast.error('Failed to search application security records. Please try again.');
-      this.setState({ 
+      console.error('Error loading application security records:', error);
+      toast.error('Failed to load application security records. Please try again.');
+      this.setState({
         isLoading: false
       });
     }
@@ -144,22 +104,21 @@ class SearchApplicationSecurityClass extends Component {
     try {
       this.setState({ isLoading: true });
       await applicationSecurityService.deleteApplicationSecurity(id);
-      
+
       toast.success('Application security record deleted successfully.');
-      this.setState({ 
+      this.setState({
         showDeleteModal: false,
-        itemToDelete: null,
-        isLoading: false
+        itemToDelete: null
       });
-      
-      // Refresh the search results
-      await this.performSearch(this.state.currentPage);
-      
+
+      // Refresh the records
+      await this.loadAllRecords(this.state.currentPage);
+
     } catch (error) {
       console.error('Error deleting application security record:', error);
       const errorMessage = error.message || 'Failed to delete application security record. Please try again.';
       toast.error(errorMessage);
-      this.setState({ 
+      this.setState({
         showDeleteModal: false,
         itemToDelete: null,
         isLoading: false
@@ -167,36 +126,8 @@ class SearchApplicationSecurityClass extends Component {
     }
   };
 
-  handleInputChange = (field, value) => {
-    this.setState({
-      searchCriteria: {
-        ...this.state.searchCriteria,
-        [field]: value
-      }
-    });
-  };
-
-  handleSearch = async () => {
-    await this.performSearch(1);
-  };
-
-  handleClear = () => {
-    this.setState({
-      searchCriteria: {
-        username: '',
-        applicationRoleId: null,
-        applicationRoleName: ''
-      },
-      searchResults: [],
-      hasSearched: false,
-      currentPage: 1,
-      totalCount: 0,
-      totalPages: 0
-    });
-  };
-
   handlePageChange = async (page) => {
-    await this.performSearch(page);
+    await this.loadAllRecords(page);
   };
 
   handleDeleteClick = (item) => {
@@ -221,14 +152,14 @@ class SearchApplicationSecurityClass extends Component {
 
   getRoleBadge = (roleName) => {
     if (!roleName) return null;
-    
+
     const roleColors = {
       'Initiator': 'primary',
       'Facility Admin': 'success',
       'Custodian': 'info',
       'Delegation': 'warning'
     };
-    
+
     return (
       <Badge color={roleColors[roleName] || 'secondary'}>
         {roleName}
@@ -237,187 +168,157 @@ class SearchApplicationSecurityClass extends Component {
   };
 
   render() {
-    const { searchCriteria, searchResults, hasSearched, isLoading, applicationRoles, showDeleteModal, itemToDelete, currentPage, totalPages, totalCount } = this.state;
+    const { searchResults, isLoading, showDeleteModal, itemToDelete, currentPage, totalPages, totalCount } = this.state;
 
     return (
       <Container fluid>
-        <Row>
-          <Col>
-            <div className="d-flex justify-content-between align-items-center">
-              <h2>Application Security Maintenance</h2>
-              <Button
-                color="primary"
-                onClick={() => this.props.navigate('/application-security/create')}
-              >
-                <i className="fas fa-plus me-2"></i>Add New
-              </Button>
-            </div>
-          </Col>
-        </Row>
-
-        {/* Search Form */}
-        <Row className="mb-4">
+        {/* Data Grid Card - VHCPP Style */}
+        <Row style={{ marginTop: '2rem' }}>
           <Col>
             <Card>
-              <CardHeader>
-                <h5>Search Criteria</h5>
+              {/* Card Header with Title - Blue Background */}
+              <CardHeader style={{ background: 'linear-gradient(to bottom, #0C7FA5 0%, #E8F7FB 100%)', color: 'white', padding: '1rem' }}>
+                <h5 style={{ margin: 0 }}>Application Security</h5>
               </CardHeader>
-              <CardBody>
-                <Form>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup>
-                        <Label for="username">Username (Email)</Label>
-                        <Input
-                          type="email"
-                          id="username"
-                          value={searchCriteria.username}
-                          onChange={(e) => this.handleInputChange('username', e.target.value)}
-                          placeholder="Enter email address"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <Label for="applicationRoleId">Application Role</Label>
-                        <Input
-                          type="select"
-                          id="applicationRoleId"
-                          value={searchCriteria.applicationRoleId || ''}
-                          onChange={(e) => this.handleInputChange('applicationRoleId', e.target.value ? parseInt(e.target.value) : null)}
-                          disabled={this.state.isLoadingRoles}
-                        >
-                          <option value="">All Roles</option>
-                          {applicationRoles.map(role => (
-                            <option key={role.id} value={role.id}>{role.name}</option>
-                          ))}
-                        </Input>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col>
-                      <Button color="primary" onClick={this.handleSearch} className="me-2" disabled={isLoading}>
-                        <i className="fas fa-search me-2"></i>{isLoading ? 'Searching...' : 'Search'}
-                      </Button>
-                      <Button color="secondary" onClick={this.handleClear} className="me-2">
-                        <i className="fas fa-eraser me-2"></i>Clear
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
 
-        {/* Search Results */}
-        {hasSearched && (
-          <Row>
-            <Col>
-              <Card>
-                <CardHeader>
-                  <h5>Search Results ({totalCount} records found)</h5>
-                </CardHeader>
-                <CardBody>
-                  {isLoading ? (
-                    <div className="text-center py-4">
-                      <i className="fas fa-spinner fa-spin fa-2x"></i>
-                      <p className="mt-2">Loading...</p>
+              {/* Card Body */}
+              <CardBody>
+                {/* Action Buttons - LEFT Aligned */}
+                <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <Button
+                    color="success"
+                    onClick={() => this.props.navigate('/application-security/create')}
+                    title="Add New"
+                    style={{ padding: '0.5rem 0.75rem' }}
+                  >
+                    <i className="fas fa-plus"></i>
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => this.loadAllRecords(1)}
+                    disabled={isLoading}
+                    title="Search"
+                    style={{ padding: '0.5rem 0.75rem' }}
+                  >
+                    <i className="fas fa-search"></i>
+                  </Button>
+                  <Button
+                    outline
+                    color="secondary"
+                    onClick={() => window.location.reload()}
+                    title="Clear Filters"
+                    style={{ padding: '0.5rem 0.75rem' }}
+                  >
+                    <i className="fas fa-eraser"></i>
+                  </Button>
+                </div>
+
+                {/* Data Grid Table */}
+                {isLoading ? (
+                  <div className="text-center py-4">
+                    <i className="fas fa-spinner fa-spin fa-2x"></i>
+                    <p className="mt-2">Loading...</p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#666' }}>
+                      {totalCount} records found
                     </div>
-                  ) : (
-                    <>
-                      <div className="table-responsive">
-                        <Table responsive striped hover>
-                          <thead>
+                    <div className="table-responsive">
+                      <Table responsive striped hover>
+                        <thead>
+                          <tr>
+                            <th>Actions</th>
+                            <th>ID</th>
+                            <th>Username (Email)</th>
+                            <th>Application Role</th>
+                            <th>Created Date</th>
+                            <th>Created By</th>
+                            <th>Updated Date</th>
+                            <th>Updated By</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {searchResults.length === 0 ? (
                             <tr>
-                              <th>ID</th>
-                              <th>Username (Email)</th>
-                              <th>Application Role</th>
-                              <th>Created Date</th>
-                              <th>Created By</th>
-                              <th>Updated Date</th>
-                              <th>Updated By</th>
-                              <th>Actions</th>
+                              <td colSpan="8" className="text-center py-4">
+                                <em>No records found</em>
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {searchResults.length === 0 ? (
-                              <tr>
-                                <td colSpan="8" className="text-center py-4">
-                                  <em>No records found</em>
-                                </td>
-                              </tr>
-                            ) : (
-                              searchResults.map((result) => (
-                                <tr key={result.id}>
-                                  <td><strong>{result.id}</strong></td>
-                                  <td>{result.username}</td>
-                                  <td>{this.getRoleBadge(result.applicationRoleName)}</td>
-                                  <td>{result.createdDate ? new Date(result.createdDate).toLocaleDateString() : 'N/A'}</td>
-                                  <td>{result.createdBy || 'N/A'}</td>
-                                  <td>{result.updatedDate ? new Date(result.updatedDate).toLocaleDateString() : 'N/A'}</td>
-                                  <td>{result.updatedBy || 'N/A'}</td>
-                                  <td>
+                          ) : (
+                            searchResults.map((result) => (
+                              <tr key={result.id}>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <Button
                                       size="sm"
+                                      outline
                                       color="primary"
                                       onClick={() => this.props.navigate(`/application-security/edit/${result.id}`)}
-                                      className="me-1"
                                       title="Edit"
+                                      style={{ padding: '0.25rem 0.5rem' }}
                                     >
                                       <i className="fas fa-edit"></i>
                                     </Button>
                                     <Button
                                       size="sm"
+                                      outline
                                       color="danger"
                                       onClick={() => this.handleDeleteClick(result)}
                                       title="Delete"
+                                      style={{ padding: '0.25rem 0.5rem' }}
                                     >
                                       <i className="fas fa-trash"></i>
                                     </Button>
-                                  </td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </Table>
-                      </div>
-                      
-                      {/* Pagination */}
-                      {totalPages > 1 && (
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                          <div>
-                            Showing page {currentPage} of {totalPages} (Total: {totalCount} records)
-                          </div>
-                          <div>
-                            <Button
-                              color="secondary"
-                              size="sm"
-                              onClick={() => this.handlePageChange(currentPage - 1)}
-                              disabled={currentPage === 1}
-                              className="me-2"
-                            >
-                              <i className="fas fa-chevron-left"></i> Previous
-                            </Button>
-                            <Button
-                              color="secondary"
-                              size="sm"
-                              onClick={() => this.handlePageChange(currentPage + 1)}
-                              disabled={currentPage === totalPages}
-                            >
-                              Next <i className="fas fa-chevron-right"></i>
-                            </Button>
-                          </div>
+                                  </div>
+                                </td>
+                                <td><strong>{result.id}</strong></td>
+                                <td>{result.username}</td>
+                                <td>{this.getRoleBadge(result.applicationRoleName)}</td>
+                                <td>{result.createdDate ? new Date(result.createdDate).toLocaleDateString() : 'N/A'}</td>
+                                <td>{result.createdBy || 'N/A'}</td>
+                                <td>{result.updatedDate ? new Date(result.updatedDate).toLocaleDateString() : 'N/A'}</td>
+                                <td>{result.updatedBy || 'N/A'}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                          Showing page {currentPage} of {totalPages} (Total: {totalCount} records)
                         </div>
-                      )}
-                    </>
-                  )}
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        )}
+                        <div>
+                          <Button
+                            color="secondary"
+                            size="sm"
+                            onClick={() => this.handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="me-2"
+                          >
+                            <i className="fas fa-chevron-left"></i> Previous
+                          </Button>
+                          <Button
+                            color="secondary"
+                            size="sm"
+                            onClick={() => this.handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            Next <i className="fas fa-chevron-right"></i>
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
 
         {/* Delete Confirmation Modal */}
         <Modal isOpen={showDeleteModal} toggle={this.handleDeleteCancel}>

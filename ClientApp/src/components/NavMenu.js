@@ -6,7 +6,7 @@ import './NavMenu.css';
 export class NavMenu extends Component {
   static displayName = NavMenu.name;
 
-  constructor (props) {
+  constructor(props) {
     super(props);
 
     this.toggleNavbar = this.toggleNavbar.bind(this);
@@ -15,7 +15,7 @@ export class NavMenu extends Component {
     };
   }
 
-  toggleNavbar () {
+  toggleNavbar() {
     this.setState({
       collapsed: !this.state.collapsed
     });
@@ -24,16 +24,19 @@ export class NavMenu extends Component {
   render() {
     return (
       <header>
-        <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow mb-3" container light>
-          <NavbarBrand tag={Link} to="/receivable-report/search">Asset Management System</NavbarBrand>
-          <NavbarToggler onClick={this.toggleNavbar} className="mr-2" />
+        <Navbar className="navbar-custom navbar-expand-sm navbar-toggleable-sm" style={{ backgroundColor: '#0C7FA5', padding: '0' }}>
+          <div className="navbar-brand-custom" tag={Link} to="/receivable-report/search">
+            <img src="/fldoh-logo.jpeg" alt="FL DOH Logo" className="navbar-logo" />
+            <span className="navbar-title">Asset Management System</span>
+          </div>
+          <NavbarToggler onClick={this.toggleNavbar} className="navbar-toggle-custom" />
           <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
             <ul className="navbar-nav flex-grow">
               <NavItem>
-                <NavLink tag={Link} className="text-dark" to="/receivable-report/search">Receivable Reports</NavLink>
+                <NavLink tag={Link} className="navbar-link-custom" to="/receivable-report/search">Receivable Reports</NavLink>
               </NavItem>
               <NavItem>
-                <NavLink tag={Link} className="text-dark" to="/application-security/search">Application Security</NavLink>
+                <NavLink tag={Link} className="navbar-link-custom" to="/application-security/search">Application Security</NavLink>
               </NavItem>
             </ul>
           </Collapse>

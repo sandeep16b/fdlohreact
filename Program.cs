@@ -4,6 +4,12 @@ using ReactAspNetApp.FDWData;
 using ReactAspNetApp.Services;
 using NLog;
 using NLog.Web;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using System.Security.Claims;
 
 // Early init of NLog to allow startup and exception logging, before host is built
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -45,7 +51,41 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllersWithViews()
+// Add Azure AD Authentication
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(options =>
+    {
+        builder.Configuration.Bind("AzureAd", options);
+        options.Events = new OpenIdConnectEvents
+        {
+            OnTokenValidated = async ctx =>
+            {
+                var roleGroups = new Dictionary<string, string>();
+                builder.Configuration.Bind("AuthorizationGroups", roleGroups);
+
+                var graphService = await GraphService.CreateOnBehalfOfUserAsync(
+                    ctx.SecurityToken.RawData, builder.Configuration);
+                var memberGroups = await graphService.CheckMemberGroupsAsync(roleGroups.Keys);
+                var claims = memberGroups.Select(g => new Claim(ClaimTypes.Role, roleGroups[g]));
+
+                ctx.Principal.AddIdentity(new ClaimsIdentity(claims));
+            }
+        };
+    });
+
+builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddControllersWithViews(options =>
+{
+    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+})
     .AddJsonOptions(options =>
     {
         // Use camelCase for JSON property names
@@ -85,13 +125,19 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseSession();
 app.UseRouting();
 
 // Enable CORS
 app.UseCors("ReactAppPolicy");
 
+// Add Authentication and Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Map API controllers
 app.MapControllers();
+app.MapRazorPages();
 
 app.MapControllerRoute(
     name: "default",

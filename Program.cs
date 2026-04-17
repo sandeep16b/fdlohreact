@@ -93,6 +93,10 @@ builder.Services.AddControllersWithViews(options =>
     {
         // Use camelCase for JSON property names
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    })
+    .AddRazorPagesOptions(options =>
+    {
+        options.Conventions.AllowAnonymousToPage("/Index");
     });
 
 var app = builder.Build();

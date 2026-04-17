@@ -4,6 +4,15 @@
 
 const BASE_URL = '/api/receivablereport';
 
+// Helper function to handle auth errors
+const handleResponse = async (response) => {
+  if (response.status === 401) {
+    window.location.href = '/login';
+    return null;
+  }
+  return response;
+};
+
 class ReceivableReportService {
   /**
    * Search receivable reports with filtering and pagination
@@ -15,8 +24,12 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(searchCriteria),
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -34,8 +47,13 @@ class ReceivableReportService {
    */
   async getAllReceivableReports() {
     try {
-      const response = await fetch(BASE_URL);
+      const response = await fetch(BASE_URL, {
+        credentials: 'include',
+      });
       
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -52,8 +70,13 @@ class ReceivableReportService {
    */
   async getReceivableReportById(id) {
     try {
-      const response = await fetch(`${BASE_URL}/${id}`);
+      const response = await fetch(`${BASE_URL}/${id}`, {
+        credentials: 'include',
+      });
       
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Receivable report not found');
@@ -78,8 +101,12 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(receivableReportData),
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -105,11 +132,14 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(receivableReportData),
       });
 
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
-        // Read response as text first, then try to parse as JSON
         const errorText = await response.text();
         let errorData;
         try {
@@ -135,7 +165,11 @@ class ReceivableReportService {
     try {
       const response = await fetch(`${BASE_URL}/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -158,7 +192,11 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -176,10 +214,7 @@ class ReceivableReportService {
    */
   async printTags(id) {
     try {
-      // In a real application, this might generate a PDF or trigger a print dialog
       console.log(`Printing tags for receivable report ${id}`);
-      
-      // For now, we'll simulate a successful print operation
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({ message: 'Tags printed successfully', reportId: id });
@@ -201,7 +236,11 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -225,7 +264,11 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -244,8 +287,13 @@ class ReceivableReportService {
    */
   async getLookupData() {
     try {
-      const response = await fetch(`${BASE_URL}/lookup-data`);
+      const response = await fetch(`${BASE_URL}/lookup-data`, {
+        credentials: 'include',
+      });
       
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -262,8 +310,13 @@ class ReceivableReportService {
    */
   async getOrganizations() {
     try {
-      const response = await fetch('/api/organization');
+      const response = await fetch('/api/organization', {
+        credentials: 'include',
+      });
       
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -280,8 +333,13 @@ class ReceivableReportService {
    */
   async getFunds() {
     try {
-      const response = await fetch('/api/fund');
+      const response = await fetch('/api/fund', {
+        credentials: 'include',
+      });
       
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -298,8 +356,13 @@ class ReceivableReportService {
    */
   async getOA1s() {
     try {
-      const response = await fetch('/api/oa1');
+      const response = await fetch('/api/oa1', {
+        credentials: 'include',
+      });
       
+      const handled = await handleResponse(response);
+      if (!handled) return null;
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -364,7 +427,11 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -388,7 +455,11 @@ class ReceivableReportService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
+
+      const handled = await handleResponse(response);
+      if (!handled) return null;
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -419,7 +490,6 @@ class ReceivableReportService {
     county = null,
     state = null,
     postalCode = null,
-    // Procurement method fields
     procurementMethod = null,
     assets = []
   }) {
@@ -438,51 +508,43 @@ class ReceivableReportService {
       state,
       postalCode,
       assets: assets.map(asset => {
-        // Parse ID carefully - must be a valid integer or default to 0
-        // SQL Server int max value is 2,147,483,647
-        // Temporary IDs from Date.now() are too large and should be treated as new assets (id: 0)
         const SQL_SERVER_INT_MAX = 2147483647;
         let parsedId = 0;
         
         if (asset.id !== null && asset.id !== undefined && asset.id !== '') {
           const tempId = parseInt(asset.id, 10);
           if (!isNaN(tempId) && tempId > 0 && tempId <= SQL_SERVER_INT_MAX) {
-            // Valid existing asset ID
             parsedId = tempId;
           }
-          // else: ID is 0, negative, or exceeds SQL Server int max - treat as new asset (id: 0)
         }
         
         return {
-        id: parsedId,
-        brand: asset.brand || '',
-        make: asset.make || '',
-        model: asset.model || '',
-        assetTag: asset.assetTag || '',
-        serialNumber: asset.serialNumber || '',
-        assetValue: parseFloat(asset.assetValue) || 0,
-        objectCodeId: asset.objectCodeId && !isNaN(parseInt(asset.objectCodeId)) ? parseInt(asset.objectCodeId) : null,
-        assignedTo: asset.assignedTo || '',
-        floor: asset.floor || '',
-        room: asset.room || '',
-        isOwnedByCounty: asset.isOwnedByCounty || false,
-        countyId: asset.countyId && !isNaN(parseInt(asset.countyId)) ? parseInt(asset.countyId) : null,
-        uniqueTagNumber: asset.uniqueTagNumber || '',
-        assetStatus: asset.assetStatus || 'Open'
+          id: parsedId,
+          brand: asset.brand || '',
+          make: asset.make || '',
+          model: asset.model || '',
+          assetTag: asset.assetTag || '',
+          serialNumber: asset.serialNumber || '',
+          assetValue: parseFloat(asset.assetValue) || 0,
+          objectCodeId: asset.objectCodeId && !isNaN(parseInt(asset.objectCodeId)) ? parseInt(asset.objectCodeId) : null,
+          assignedTo: asset.assignedTo || '',
+          floor: asset.floor || '',
+          room: asset.room || '',
+          isOwnedByCounty: asset.isOwnedByCounty || false,
+          countyId: asset.countyId && !isNaN(parseInt(asset.countyId)) ? parseInt(asset.countyId) : null,
+          uniqueTagNumber: asset.uniqueTagNumber || '',
+          assetStatus: asset.assetStatus || 'Open'
         };
       })
     };
 
-    // DEBUG: Log asset IDs after mapping
     console.log('🔧 Service buildReceivableReportData - Asset IDs:', data.assets.map(a => ({ 
       id: a.id, 
       type: typeof a.id, 
       brand: a.brand 
     })));
 
-    // Add procurement method if provided
     if (procurementMethod) {
-      // Format chargeDate properly for API
       let formattedChargeDate = null;
       if (procurementMethod.chargeDate) {
         try {
@@ -516,6 +578,5 @@ class ReceivableReportService {
   }
 }
 
-// Export a singleton instance
 const receivableReportService = new ReceivableReportService();
 export default receivableReportService;

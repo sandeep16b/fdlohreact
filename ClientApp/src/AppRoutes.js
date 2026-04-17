@@ -6,7 +6,7 @@ import { CreateApplicationSecurity } from "./components/CreateApplicationSecurit
 
 const AppRoutes = [
   {
-    index: true,
+    path: '/',
     element: <SearchReceivableReport />
   },
   {

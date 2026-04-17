@@ -148,6 +148,9 @@ app.MapControllerRoute(
 
 app.MapFallbackToFile("index.html");
 
+// Test endpoint to verify backend is working
+app.MapGet("/api/test", () => "Backend on 44456 works!").AllowAnonymous();
+
     app.Run();
 }
 catch (Exception exception)

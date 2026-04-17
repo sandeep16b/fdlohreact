@@ -16,7 +16,7 @@ namespace ReactAspNetApp.Controllers
     /// <summary>
     /// API Controller for managing Receivable Reports
     /// </summary>
-    [ApiController]
+    
     [Route("api/[controller]")]
     public class ReceivableReportController : ControllerBase
     {

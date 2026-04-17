@@ -10,9 +10,9 @@ namespace ReactAspNetApp.Controllers
     /// <summary>
     /// API Controller for managing Application Security
     /// </summary>
-    [ApiController]
+    
     [Route("api/[controller]")]
-    public class ApplicationSecurityController : ControllerBase
+    public class ApplicationSecurityController : ApiBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ApplicationSecurityController> _logger;

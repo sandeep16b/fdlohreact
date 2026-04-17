@@ -5,9 +5,9 @@ using ReactAspNetApp.Models;
 
 namespace ReactAspNetApp.Controllers
 {
-    [ApiController]
+    
     [Route("api/[controller]")]
-    public class AssetGroupController : ControllerBase
+    public class AssetGroupController : ApiBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AssetGroupController> _logger;

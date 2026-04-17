@@ -6,6 +6,7 @@ using NLog;
 using NLog.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web.UI;
 using System.Security.Claims;
 

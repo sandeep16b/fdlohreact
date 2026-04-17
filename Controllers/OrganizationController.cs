@@ -4,9 +4,9 @@ using ReactAspNetApp.FDWData;
 
 namespace ReactAspNetApp.Controllers
 {
-    [ApiController]
+    
     [Route("api/[controller]")]
-    public class OrganizationController : ControllerBase
+    public class OrganizationController : ApiBaseController
     {
         private readonly FDWDbContext _fdwContext;
         private readonly ILogger<OrganizationController> _logger;

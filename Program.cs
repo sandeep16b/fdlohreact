@@ -5,8 +5,6 @@ using ReactAspNetApp.Services;
 using NLog;
 using NLog.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using System.Security.Claims;
@@ -84,11 +82,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddControllersWithViews(options =>
-{
-    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-    options.Filters.Add(new AuthorizeFilter(policy));
-})
+builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
         // Use camelCase for JSON property names

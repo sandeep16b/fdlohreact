@@ -6,6 +6,8 @@ using NLog;
 using NLog.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web.UI;
 using System.Security.Claims;
@@ -102,25 +104,26 @@ builder.Services.AddControllersWithViews()
 
 var app = builder.Build();
 
-// Initialize database on startup
-using (var scope = app.Services.CreateScope())
+// Initialize database on startup (skip in development to avoid MFA prompt)
+if (!app.Environment.IsDevelopment())
 {
-    var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializationService>();
-    var dbLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        dbLogger.LogInformation("Initializing database...");
-        await dbInitializer.InitializeDatabaseAsync();
-        
-        var stats = await dbInitializer.GetDatabaseStatisticsAsync();
-        dbLogger.LogInformation("Database initialized successfully. Statistics: {Stats}", stats.ToString());
-    }
-    catch (Exception ex)
-    {
-        dbLogger.LogError(ex, "Failed to initialize database. Application will continue but may not function properly.");
-        // Continue running the application even if database initialization fails
-        // This allows for manual intervention if needed
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializationService>();
+        var dbLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            dbLogger.LogInformation("Initializing database...");
+            await dbInitializer.InitializeDatabaseAsync();
+
+            var stats = await dbInitializer.GetDatabaseStatisticsAsync();
+            dbLogger.LogInformation("Database initialized successfully. Statistics: {Stats}", stats.ToString());
+        }
+        catch (Exception ex)
+        {
+            dbLogger.LogError(ex, "Failed to initialize database. Application will continue but may not function properly.");
+        }
     }
 }
 
@@ -155,8 +158,24 @@ app.MapControllerRoute(
 
 app.MapFallbackToFile("index.html");
 
-// Login endpoint - requires authentication (user clicks Login button, gets redirected here)
-app.MapGet("/account/login", () => Results.Redirect("/")).RequireAuthorization();
+// Login endpoint - redirects to Azure AD login
+app.MapGet("/account/login", (HttpContext context) =>
+{
+    if (context.User.Identity?.IsAuthenticated != true)
+    {
+        return Results.Challenge(
+            authenticationSchemes: new[] { OpenIdConnectDefaults.AuthenticationScheme });
+    }
+    return Results.Redirect("/");
+}).AllowAnonymous();
+
+// Logout endpoint - signs out from Azure AD and clears session
+app.MapPost("/account/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+    return Results.Redirect("/");
+}).AllowAnonymous();
 
 // User auth status endpoint
 app.MapGet("/api/user", (HttpContext context) =>

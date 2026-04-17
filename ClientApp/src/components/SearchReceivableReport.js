@@ -53,6 +53,13 @@ export class SearchReceivableReport extends Component {
   }
 
   async componentDidMount() {
+    // Check if user is authenticated before loading data
+    const authResponse = await fetch("/api/user", { credentials: "include" });
+    const authData = await authResponse.json();
+    if (!authData.isAuthenticated) {
+      this.setState({ isAuthenticated: false });
+      return;
+    }
     try {
       // Load all reports on page mount
       await this.loadAllReports();
@@ -149,7 +156,10 @@ export class SearchReceivableReport extends Component {
   };
 
   render() {
-    }    const { searchResults, filteredResults, isLoading, totalCount, filters } = this.state;
+    const { searchResults, filteredResults, isLoading, totalCount, filters } = this.state;
+    if (!this.state.isAuthenticated) {
+      return <div style={{ padding: "2rem" }}>Please log in to view data.</div>;
+    }
 
     return (
       <Container fluid>

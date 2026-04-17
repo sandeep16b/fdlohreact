@@ -19,6 +19,17 @@ export class NavMenu extends Component {
 
   componentDidMount() {
     this.checkAuthStatus();
+    // Check auth status every 500ms to quickly update after login
+    this.authInterval = setInterval(() => this.checkAuthStatus(), 500);
+    // Also check when page becomes visible
+    document.addEventListener('visibilitychange', this.checkAuthStatus);
+  }
+
+  componentWillUnmount() {
+    if (this.authInterval) {
+      clearInterval(this.authInterval);
+    }
+    document.removeEventListener('visibilitychange', this.checkAuthStatus);
   }
 
   checkAuthStatus = async () => {
@@ -43,7 +54,7 @@ export class NavMenu extends Component {
   }
 
   handleLogout = () => {
-    window.location.href = '/MicrosoftIdentity/Account/SignOut';
+    fetch('/account/logout', { method: 'POST', credentials: 'include' }).then(() => { window.location.href = '/'; });
   }
 
   render() {

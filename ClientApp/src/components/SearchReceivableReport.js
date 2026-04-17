@@ -14,7 +14,6 @@ import { Link } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { toast } from 'react-toastify';
 import receivableReportService from '../services/receivableReportService';
-import { Login } from './Login';
 
 export class SearchReceivableReport extends Component {
   static displayName = SearchReceivableReport.name;
@@ -150,9 +149,6 @@ export class SearchReceivableReport extends Component {
   };
 
   render() {
-    const { isAuthenticated } = this.state;
-    if (!isAuthenticated) {
-      return <Login />;
     }    const { searchResults, filteredResults, isLoading, totalCount, filters } = this.state;
 
     return (

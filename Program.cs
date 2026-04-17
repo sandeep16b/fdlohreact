@@ -55,24 +55,30 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(options =>
     {
         builder.Configuration.Bind("AzureAd", options);
-        options.Events = new OpenIdConnectEvents
+        var useGraphApiRoles = builder.Configuration.GetValue<bool>("Auth:UseGraphApiRoles");
+        var useRoleBasedAuthorization = builder.Configuration.GetValue<bool>("Auth:UseRoleBasedAuthorization");
+
+        if (useGraphApiRoles && useRoleBasedAuthorization)
         {
-            OnTokenValidated = async ctx =>
+            options.Events = new OpenIdConnectEvents
             {
-                var roleGroups = new Dictionary<string, string>();
-                builder.Configuration.Bind("AuthorizationGroups", roleGroups);
-
-                var graphService = await GraphService.CreateOnBehalfOfUserAsync(
-                    ctx.SecurityToken.RawData, builder.Configuration);
-                var memberGroups = await graphService.CheckMemberGroupsAsync(roleGroups.Keys);
-                var claims = memberGroups.Select(g => new Claim(ClaimTypes.Role, roleGroups[g]));
-
-                if (ctx.Principal != null)
+                OnTokenValidated = async ctx =>
                 {
-                    ctx.Principal.AddIdentity(new ClaimsIdentity(claims));
+                    var roleGroups = new Dictionary<string, string>();
+                    builder.Configuration.Bind("AuthorizationGroups", roleGroups);
+
+                    var graphService = await GraphService.CreateOnBehalfOfUserAsync(
+                        ctx.SecurityToken.RawData, builder.Configuration);
+                    var memberGroups = await graphService.CheckMemberGroupsAsync(roleGroups.Keys);
+                    var claims = memberGroups.Select(g => new Claim(ClaimTypes.Role, roleGroups[g]));
+
+                    if (ctx.Principal != null)
+                    {
+                        ctx.Principal.AddIdentity(new ClaimsIdentity(claims));
+                    }
                 }
-            }
-        };
+            };
+        }
     });
 
 builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
@@ -152,6 +158,18 @@ app.MapFallbackToFile("index.html");
 // Login endpoint - requires authentication (user clicks Login button, gets redirected here)
 app.MapGet("/account/login", () => Results.Redirect("/")).RequireAuthorization();
 
+// User auth status endpoint
+app.MapGet("/api/user", (HttpContext context) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        return Results.Ok(new { 
+            isAuthenticated = true, 
+            name = context.User.Identity.Name 
+        });
+    }
+    return Results.Ok(new { isAuthenticated = false });
+}).AllowAnonymous();
 // Test endpoint to verify backend is working
 app.MapGet("/api/test", () => "Backend on 44456 works!").AllowAnonymous();
 

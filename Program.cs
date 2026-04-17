@@ -133,10 +133,11 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
-app.UseRouting();
 
-// Enable CORS
+// Enable CORS (before routing)
 app.UseCors("ReactAppPolicy");
+
+app.UseRouting();
 
 // Add Authentication and Authorization
 app.UseAuthentication();

@@ -44,7 +44,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactAppPolicy", builder =>
     {
-        builder.WithOrigins("https://localhost:44455", "http://localhost:44455", "https://localhost:44456", "http://localhost:44456")
+        builder.WithOrigins("https://localhost:44455", "http://localhost:44455", "https://localhost:44456", "http://localhost:44456", "http://localhost:3000", "https://localhost:3000")
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials();
@@ -68,7 +68,10 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 var memberGroups = await graphService.CheckMemberGroupsAsync(roleGroups.Keys);
                 var claims = memberGroups.Select(g => new Claim(ClaimTypes.Role, roleGroups[g]));
 
-                ctx.Principal.AddIdentity(new ClaimsIdentity(claims));
+                if (ctx.Principal != null)
+                {
+                    ctx.Principal.AddIdentity(new ClaimsIdentity(claims));
+                }
             }
         };
     });

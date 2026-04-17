@@ -74,7 +74,7 @@ namespace ReactAspNetApp.Services
         /// <summary>
         /// Get formatted exception details including inner exceptions
         /// </summary>
-        private string GetExceptionDetails(Exception exception)
+        private string? GetExceptionDetails(Exception exception)
         {
             if (exception == null)
                 return null;

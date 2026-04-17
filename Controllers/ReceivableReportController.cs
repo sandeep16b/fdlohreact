@@ -36,25 +36,28 @@ namespace ReactAspNetApp.Controllers
         /// Search for receivable reports with filtering and pagination
         /// </summary>
         [HttpPost("search")]
-        public async Task<ActionResult<PagedResult<ReceivableReportDto>>> SearchReceivableReports([FromBody] ReceivableReportSearchDto searchDto)
+        public async Task<ActionResult<PagedResult<ReceivableReportDto>>> SearchReceivableReports([FromBody] ReceivableReportSearchDto? searchDto)
         {
-            _loggingService.LogMethodEntry($"PageNumber: {searchDto?.PageNumber}, PageSize: {searchDto?.PageSize}");
-            
+            if (searchDto == null)
+                return BadRequest("Search parameters are required");
+
+            _loggingService.LogMethodEntry($"PageNumber: {searchDto.PageNumber}, PageSize: {searchDto.PageSize}");
+
             try
             {
-                _loggingService.LogInformation($"Searching receivable reports with filters - PageNumber: {searchDto?.PageNumber}, PageSize: {searchDto?.PageSize}, OrganizationId: {searchDto?.OrganizationId}, FundId: {searchDto?.FundId}");
+                _loggingService.LogInformation($"Searching receivable reports with filters - PageNumber: {searchDto.PageNumber}, PageSize: {searchDto.PageSize}, OrganizationId: {searchDto.OrganizationId}, FundId: {searchDto.FundId}");
                 var query = _context.ReceivableReports
                     .Include(rr => rr.Location)
-                    .Include(rr => rr.ProcurementMethod)
+                    .Include(rr => rr.ProcurementMethod!)
                         .ThenInclude(pm => pm.ProcurementType)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.ObjectCodeNavigation)
+                        .ThenInclude(a => a.ObjectCodeNavigation!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetGroup)
+                        .ThenInclude(a => a.AssetGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetSubGroup)
+                        .ThenInclude(a => a.AssetSubGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.County)
+                        .ThenInclude(a => a.County!)
                     .AsQueryable();
 
                 // Apply filters
@@ -229,16 +232,16 @@ namespace ReactAspNetApp.Controllers
             {
                 var reports = await _context.ReceivableReports
                     .Include(rr => rr.Location)
-                    .Include(rr => rr.ProcurementMethod)
+                    .Include(rr => rr.ProcurementMethod!)
                         .ThenInclude(pm => pm.ProcurementType)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.ObjectCodeNavigation)
+                        .ThenInclude(a => a.ObjectCodeNavigation!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetGroup)
+                        .ThenInclude(a => a.AssetGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetSubGroup)
+                        .ThenInclude(a => a.AssetSubGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.County)
+                        .ThenInclude(a => a.County!)
                     .Where(rr => !rr.IsDeleted)
                     .OrderByDescending(rr => rr.CreatedDate)
                     .ToListAsync();
@@ -267,16 +270,16 @@ namespace ReactAspNetApp.Controllers
                 
                 var report = await _context.ReceivableReports
                     .Include(rr => rr.Location)
-                    .Include(rr => rr.ProcurementMethod)
+                    .Include(rr => rr.ProcurementMethod!)
                         .ThenInclude(pm => pm.ProcurementType)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.ObjectCodeNavigation)
+                        .ThenInclude(a => a.ObjectCodeNavigation!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetGroup)
+                        .ThenInclude(a => a.AssetGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetSubGroup)
+                        .ThenInclude(a => a.AssetSubGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.County)
+                        .ThenInclude(a => a.County!)
                     .FirstOrDefaultAsync(rr => rr.Id == id && !rr.IsDeleted);
 
                 if (report == null)
@@ -465,16 +468,16 @@ namespace ReactAspNetApp.Controllers
                 // Return the created report
                 var createdReport = await _context.ReceivableReports
                     .Include(rr => rr.Location)
-                    .Include(rr => rr.ProcurementMethod)
+                    .Include(rr => rr.ProcurementMethod!)
                         .ThenInclude(pm => pm.ProcurementType)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.ObjectCodeNavigation)
+                        .ThenInclude(a => a.ObjectCodeNavigation!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetGroup)
+                        .ThenInclude(a => a.AssetGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetSubGroup)
+                        .ThenInclude(a => a.AssetSubGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.County)
+                        .ThenInclude(a => a.County!)
                     .FirstAsync(rr => rr.Id == report.Id);
 
                 var dto = await MapToDtoAsync(createdReport);
@@ -585,7 +588,7 @@ namespace ReactAspNetApp.Controllers
                 }
 
                 // Validate object code IDs exist
-                var objectCodeIds = updateDto.Assets.Where(a => a.ObjectCodeId.HasValue).Select(a => a.ObjectCodeId.Value).Distinct().ToList();
+                var objectCodeIds = updateDto.Assets.Where(a => a.ObjectCodeId.HasValue).Select(a => a.ObjectCodeId!.Value).Distinct().ToList();
                 if (objectCodeIds.Any())
                 {
                     var invalidObjectCodeIds = new List<int>();
@@ -605,7 +608,7 @@ namespace ReactAspNetApp.Controllers
                 }
 
                 // Validate county IDs exist
-                var countyIds = updateDto.Assets.Where(a => a.CountyId.HasValue).Select(a => a.CountyId.Value).Distinct().ToList();
+                var countyIds = updateDto.Assets.Where(a => a.CountyId.HasValue).Select(a => a.CountyId!.Value).Distinct().ToList();
                 if (countyIds.Any())
                 {
                     var invalidCountyIds = new List<int>();
@@ -754,16 +757,16 @@ namespace ReactAspNetApp.Controllers
                 // Return updated report
                 var updatedReport = await _context.ReceivableReports
                     .Include(rr => rr.Location)
-                    .Include(rr => rr.ProcurementMethod)
+                    .Include(rr => rr.ProcurementMethod!)
                         .ThenInclude(pm => pm.ProcurementType)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.ObjectCodeNavigation)
+                        .ThenInclude(a => a.ObjectCodeNavigation!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetGroup)
+                        .ThenInclude(a => a.AssetGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.AssetSubGroup)
+                        .ThenInclude(a => a.AssetSubGroup!)
                     .Include(rr => rr.Assets.Where(a => !a.IsDeleted))
-                        .ThenInclude(a => a.County)
+                        .ThenInclude(a => a.County!)
                     .FirstAsync(rr => rr.Id == id);
 
                 var dto = await MapToDtoAsync(updatedReport);
@@ -1889,7 +1892,7 @@ namespace ReactAspNetApp.Controllers
         /// <summary>
         /// Create a history record for tracking changes
         /// </summary>
-        private async Task CreateHistoryRecord(ReceivableReport report, string operationType, string changeReason = null)
+        private async Task CreateHistoryRecord(ReceivableReport report, string operationType, string? changeReason = null)
         {
             var currentUser = GetCurrentUser();
             var currentTime = DateTime.UtcNow;
@@ -2086,11 +2089,11 @@ namespace ReactAspNetApp.Controllers
             {
                 Id = asset.Id,
                 ReceivableReportId = asset.ReceivableReportId,
-                Brand = asset.Brand,
-                Make = asset.Make,
-                Model = asset.Model,
-                AssetTag = asset.AssetTag,
-                SerialNumber = asset.SerialNumber,
+                Brand = asset.Brand ?? string.Empty,
+                Make = asset.Make ?? string.Empty,
+                Model = asset.Model ?? string.Empty,
+                AssetTag = asset.AssetTag ?? string.Empty,
+                SerialNumber = asset.SerialNumber ?? string.Empty,
                 AssetValue = asset.AssetValue,
                 ObjectCodeId = asset.ObjectCodeId,
                 ObjectCodeName = asset.ObjectCodeNavigation?.Name,
@@ -2105,13 +2108,13 @@ namespace ReactAspNetApp.Controllers
                 CountyId = asset.CountyId,
                 CountyName = asset.County?.Name,
                 UniqueTagNumber = asset.UniqueTagNumber,
-                AssetStatus = asset.AssetStatus,
+                AssetStatus = asset.AssetStatus ?? "Open",
                 TagPrintedDate = asset.TagPrintedDate,
                 TagPrintedBy = asset.TagPrintedBy,
                 TagAttestedDate = asset.TagAttestedDate,
                 TagAttestedBy = asset.TagAttestedBy,
                 CreatedDate = asset.CreatedDate,
-                CreatedBy = asset.CreatedBy,
+                CreatedBy = asset.CreatedBy ?? string.Empty,
                 ModifiedDate = asset.ModifiedDate,
                 ModifiedBy = asset.ModifiedBy
             };

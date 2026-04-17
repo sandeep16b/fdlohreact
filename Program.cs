@@ -146,10 +146,11 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
+
 app.MapFallbackToFile("index.html");
 
-// Login endpoint - requires authentication
-app.MapGet("/login", () => Results.Redirect("/")).RequireAuthorization();
+// Login endpoint - requires authentication (user clicks Login button, gets redirected here)
+app.MapGet("/account/login", () => Results.Redirect("/")).RequireAuthorization();
 
 // Test endpoint to verify backend is working
 app.MapGet("/api/test", () => "Backend on 44456 works!").AllowAnonymous();

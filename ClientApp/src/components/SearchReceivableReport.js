@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { toast } from 'react-toastify';
 import receivableReportService from '../services/receivableReportService';
+import { Login } from './Login';
 
 export class SearchReceivableReport extends Component {
   static displayName = SearchReceivableReport.name;
@@ -21,7 +22,7 @@ export class SearchReceivableReport extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      searchResults: [],
+      isAuthenticated: true,      searchResults: [],
       filteredResults: [],
 
       // Pagination
@@ -58,7 +59,8 @@ export class SearchReceivableReport extends Component {
       await this.loadAllReports();
     } catch (error) {
       console.error('Error in componentDidMount:', error);
-      toast.error('Failed to load data. Please refresh the page.');
+      this.setState({ isAuthenticated: false });
+      toast.error('Please log in to access the application.');
       this.setState({ isLoading: false });
     }
   }
@@ -148,7 +150,10 @@ export class SearchReceivableReport extends Component {
   };
 
   render() {
-    const { searchResults, filteredResults, isLoading, totalCount, filters } = this.state;
+    const { isAuthenticated } = this.state;
+    if (!isAuthenticated) {
+      return <Login />;
+    }    const { searchResults, filteredResults, isLoading, totalCount, filters } = this.state;
 
     return (
       <Container fluid>
